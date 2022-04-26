@@ -1,0 +1,127 @@
+---
+sidebar_position: 8
+---
+
+# Cache <img src="http://badges.github.io/stability-badges/dist/experimental.svg"/>
+
+
+
+## Overview
+
+Wails has a Cache that can be accessed by both Go and Javascript. This is useful if you want to transfer large files
+such as images from Go to the frontend, or vice-versa.
+
+### CachePut
+
+Go Signature: `CachePut(ctx context.Context, key string, data []byte)`
+
+JS Signature: `CachePut(key: string, data: any)`
+
+Stores the given key/data pair into the cache. If the key already exists, it will be overwritten.
+
+Emits the `wails:cache:put` event with the key.
+
+### CacheGet
+
+Go Signature: `CacheGet(ctx context.Context, key string) *[CacheEntry](#cacheentry)`
+
+JS Signature: `CacheGet(key: string) Promise<[CacheEntry](#cacheentry)>`
+
+Gets the data stored for the given key. If the key does not exist, nil is returned for Go and a null is returned for JavaScript.
+
+Emits the `wails:cache:get` event with the key.
+
+### CacheDelete
+
+Go Signature: `CacheDelete(ctx context.Context, key string)`
+
+JS Signature: `CacheDelete(key: string)`
+
+Deletes the data stored for the given key (if it exists).
+
+Emits the `wails:cache:delete` event with the key.
+
+### CacheEntry
+
+A CacheEntry contains the cache data as well as a mimetype that is associated with that data. When data is put into the
+cache, it tries to determine the mimetype. This is useful as an indicator of what type of data is stored in an entry.
+
+In Go, a CacheEntry is defined as:
+```go
+type CacheEntry struct {
+	Data     []byte
+	Mimetype *mimetype.MIME
+}
+```
+In Javascript, a CacheEntry is defined as:
+```js
+class CacheEntry {
+    constructor(data, mimetype) {
+        this.data = data || new ArrayBuffer(0);
+        this.mimetype = mimetype;
+    }
+
+    toString() {
+        const arr = new Uint8Array(this.data);
+        return new TextDecoder().decode(arr);
+    }
+
+    tojSON() {
+        const str = this.toString();
+        return JSON.parse(str);
+    }
+
+    toObjectURL() {
+        return URL.createObjectURL(new Blob([this.data]));
+    }
+}
+```
+There are a few helper methods on the JS CacheEntry to make it easier to deal with the raw ArrayBuffer.
+
+## Example
+
+This example extends the default application to display a random image every time the button is clicked.
+
+In our `app.go`, we embed a number of images:
+
+```go
+//go:embed images/encrypteasy.jpg
+var encrypteasy []byte
+
+//go:embed images/hsk.png
+var hsk []byte
+
+//go:embed images/filehound.jpg
+var filehound []byte
+
+var images = [][]byte{
+	encrypteasy,
+	hsk,
+	filehound,
+}
+````
+
+Then in our `Greet` method, we set an entry in the cache:
+
+```go
+func (a *App) Greet(name string) string {
+	imageIndex := rand.Intn(len(images) - 1)
+	runtime.CacheSet(a.ctx, "cover-image", images[imageIndex])
+	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+```
+
+In our frontend, we can now listen for the "wails:cache:set" event, test if it is our cover image and if so,
+set the logo `src` to the new image:
+
+```js
+import {CacheGet, EventsOn} from './wailsjs/runtime';
+
+EventsOn("wails:cache:set", (cacheKey) => {
+    if ( cacheKey === "cover-image" ) {
+        CacheGet("cover-image").then((entry) => {
+            document.getElementById('logo').src = entry.toObjectURL();
+        })
+    }
+});
+```

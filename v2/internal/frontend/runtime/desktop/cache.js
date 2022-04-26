@@ -38,7 +38,7 @@ export function CacheGet(key) {
         fetch("/cache/" + key)
             .then((res) => {
                 if (!res.ok) {
-                    return resolve(new CacheEntry());
+                    return resolve(null);
                 }
                 let mimetype = res.headers.get("content-type");
                 res.arrayBuffer()
