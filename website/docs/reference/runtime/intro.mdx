@@ -40,7 +40,9 @@ Returns details of the current environment.
 
 ```go
 type EnvironmentInfo struct {
-    BuildType string  // Either "production", "debug" or "dev"
+    BuildType string  // "production", "debug" or "dev"
+    Platform string   // "windows", "darwin", "linux",...
+    Arch string       // "amd64", "arm64", ...
 }
 ```
 

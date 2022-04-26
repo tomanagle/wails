@@ -25,6 +25,14 @@ export interface EnvironmentInfo {
     arch: string;
 }
 
+export interface CacheEntry {
+    toString(): string;
+
+    toJSON(): object;
+
+    toObjectURL(): string;
+}
+
 // [EventsEmit](https://wails.io/docs/reference/runtime/events#eventsemit)
 // emits the given event. Optional data may be passed with the event.
 // This will trigger any event listeners.
@@ -178,11 +186,23 @@ export function NavigateBackToApp(): void;
 // Opens the given URL in the system browser.
 export function BrowserOpenURL(url: string): void;
 
-// []()
-//
-export function Environment(): EnvironmentInfo;
+// [CacheGet](https://wails.io/docs/next/reference/runtime/cache#cacheget)
+// Retrieves a cache entry for the given key
+export function CacheGet(key: string): Promise<CacheEntry>;
 
+// [CacheSet](https://wails.io/docs/next/reference/runtime/cache#cacheset)
+// Stores the given key/data pair in the cache
+export function CacheSet(key: string, data: any): Promise<null>;
+
+// [CacheDelete](https://wails.io/docs/next/reference/runtime/cache#cachedelete)
+// Deletes the cache entry for the given key
+export function CacheDelete(key: string): Promise<null>;
+
+// [Environment](https://wails.io/docs/next/reference/runtime/intro#environment)
+// Returns the current Environment
+export function Environment(): EnvironmentInfo;
 
 // [Quit](https://wails.io/docs/next/reference/runtime/intro#quit)
 // Quits the application.
 export function Quit(): void;
+

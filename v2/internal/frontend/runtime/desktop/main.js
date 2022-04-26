@@ -14,6 +14,7 @@ import {Call, Callback, callbacks} from './calls';
 import {SetBindings} from "./bindings";
 import * as Window from "./window";
 import * as Browser from "./browser";
+import * as Cache from "./cache";
 
 
 export function Quit() {
@@ -29,6 +30,7 @@ window.runtime = {
     ...Log,
     ...Window,
     ...Browser,
+    ...Cache,
     EventsOn,
     EventsOnce,
     EventsOnMultiple,

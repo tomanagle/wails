@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/wailsapp/wails/v2/internal/frontend/filecache"
 	"io"
 	iofs "io/fs"
 	"net/http"
@@ -22,7 +23,8 @@ import (
 var defaultHTML []byte
 
 const (
-	indexHTML = "index.html"
+	indexHTML   = "index.html"
+	cachePrefix = "/cache/"
 )
 
 type assetHandler struct {
@@ -71,6 +73,12 @@ func NewAsssetHandler(ctx context.Context, options *options.App) (http.Handler, 
 }
 
 func (d *assetHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+
+	if strings.HasPrefix(req.URL.Path, cachePrefix) {
+		d.handleCacheRequest(rw, req)
+		return
+	}
+
 	handler := d.handler
 	if strings.EqualFold(req.Method, http.MethodGet) {
 		filename := strings.TrimPrefix(req.URL.Path, "/")
@@ -162,5 +170,37 @@ func (d *assetHandler) logDebug(message string, args ...interface{}) {
 func (d *assetHandler) logError(message string, args ...interface{}) {
 	if d.logger != nil {
 		d.logger.Error("[AssetHandler] "+message, args...)
+	}
+}
+
+func (d *assetHandler) handleCacheRequest(rw http.ResponseWriter, req *http.Request) {
+	id := strings.TrimPrefix(req.URL.Path, cachePrefix)
+	switch req.Method {
+	case "GET":
+		data := filecache.Get(id)
+		if data == nil {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_, err := rw.Write(data.Data)
+		if err != nil {
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		rw.Header().Set("content-type", data.Mimetype.String())
+	case "PUT":
+		// Won't work on linux
+		data, err := io.ReadAll(req.Body)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		filecache.Set(id, data)
+		rw.WriteHeader(http.StatusOK)
+	case "DELETE":
+		// Won't work on linux
+		filecache.Delete(id)
+	default:
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }

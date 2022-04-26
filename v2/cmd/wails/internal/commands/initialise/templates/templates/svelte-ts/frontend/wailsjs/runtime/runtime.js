@@ -41,7 +41,7 @@ export function EventsOnMultiple(eventName, callback, maxCallbacks) {
 }
 
 export function EventsOn(eventName, callback) {
-    OnMultiple(eventName, callback, -1);
+    EventsOnMultiple(eventName, callback, -1);
 }
 
 export function EventsOff(eventName) {
@@ -49,7 +49,7 @@ export function EventsOff(eventName) {
 }
 
 export function EventsOnce(eventName, callback) {
-    OnMultiple(eventName, callback, 1);
+    EventsOnMultiple(eventName, callback, 1);
 }
 
 export function EventsEmit(eventName) {
@@ -145,8 +145,20 @@ export function WindowUnminimise() {
     window.runtime.WindowUnminimise();
 }
 
-export function WindowSetRGBA(RGBA) {
-    window.runtime.WindowSetRGBA(RGBA);
+export function WindowSetRGBA(R, G, B, A) {
+    window.runtime.WindowSetRGBA(R, G, B, A);
+}
+
+export function CacheGet(key) {
+    return window.runtime.CacheGet(key);
+}
+
+export function CacheSet(key, data) {
+    return window.runtime.CacheSet(key, data);
+}
+
+export function CacheDelete(key) {
+    return window.runtime.CacheDelete(key);
 }
 
 export function BrowserOpenURL(url) {

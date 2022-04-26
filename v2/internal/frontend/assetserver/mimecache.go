@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	cache = map[string]string{}
-	mutex sync.Mutex
+	mimeCache = map[string]string{}
+	mutex     sync.Mutex
 )
 
 func GetMimetype(filename string, data []byte) string {
@@ -26,7 +26,7 @@ func GetMimetype(filename string, data []byte) string {
 		return "text/css; charset=utf-8"
 	}
 
-	result := cache[filename]
+	result := mimeCache[filename]
 	if result != "" {
 		return result
 	}
@@ -42,6 +42,6 @@ func GetMimetype(filename string, data []byte) string {
 		result = "application/octet-stream"
 	}
 
-	cache[filename] = result
+	mimeCache[filename] = result
 	return result
 }
