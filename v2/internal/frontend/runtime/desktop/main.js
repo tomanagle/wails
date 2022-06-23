@@ -51,7 +51,7 @@ window.wails = {
         enableResize: false,
         defaultCursor: null,
         borderThickness: 6,
-        dbClickInterval: 100,
+        dbClickInterval: 200,
     }
 };
 
@@ -66,8 +66,7 @@ if (ENV === 0) {
     delete window.wailsbindings;
 }
 
-var dragTimeOut;
-var dragLastTime = 0;
+var clickLastTime = 0;
 
 function drag() {
     window.WailsInvoke("drag");
@@ -96,13 +95,19 @@ window.addEventListener('mousedown', (e) => {
                     break;
                 }
             }
-            if (new Date().getTime() - dragLastTime < window.wails.flags.dbClickInterval) {
-                clearTimeout(dragTimeOut);
+            console.log(new Date().getTime() - clickLastTime);
+            if (new Date().getTime() - clickLastTime < window.wails.flags.dbClickInterval) {
+                currentElement.dispatchEvent(new MouseEvent('dblclick', {
+                    'view': window,
+                    'bubbles': false,
+                    'cancelable': true
+                }));
                 break;
+            } else {
+                drag();
             }
-            dragTimeOut = setTimeout(drag, window.wails.flags.dbClickInterval);
-            dragLastTime = new Date().getTime();
-            e.preventDefault();
+            clickLastTime = new Date().getTime();
+            // e.preventDefault();
             break;
         }
         currentElement = currentElement.parentElement;
